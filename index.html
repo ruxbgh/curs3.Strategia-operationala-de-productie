@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Studiu de caz interactiv – Management Operațional, Curs 3: Strategia operațională de producție.">
+<title>Gustoria Foods – Studiu de caz MO</title>
+<style>
+:root{
+  --bg:#FFF4E3; --surface:#FFFFFF; --ink:#24163F; --muted:#5E5278; --line:#EBD9F5;
+  --accent:#E0430F; --accent-ink:#FFFFFF; --accent2:#5B3DF5; --sel:#FFE6D1;
+  --ok:#0B8A5C; --ok-bg:#D6F7E7; --bad:#D6203F; --bad-bg:#FFE0E6; --part:#9A5B00; --part-bg:#FFEDB8;
+  --shadow:0 2px 0 rgba(91,61,245,.10),0 10px 28px rgba(91,61,245,.14);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#140F2B; --surface:#201A45; --ink:#F6F0FF; --muted:#BDB1DD; --line:#3B3270;
+    --accent:#FF7A45; --accent-ink:#1A0E05; --accent2:#9C86FF; --sel:#3A2756;
+    --ok:#4FE3A4; --ok-bg:#0F3A2C; --bad:#FF8FA3; --bad-bg:#4A1626; --part:#FFD25E; --part-bg:#40300A;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#140F2B; --surface:#201A45; --ink:#F6F0FF; --muted:#BDB1DD; --line:#3B3270;
+  --accent:#FF7A45; --accent-ink:#1A0E05; --accent2:#9C86FF; --sel:#3A2756;
+  --ok:#4FE3A4; --ok-bg:#0F3A2C; --bad:#FF8FA3; --bad-bg:#4A1626; --part:#FFD25E; --part-bg:#40300A;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:env(safe-area-inset-bottom)}
+h1,h2,h3{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;line-height:1.2;margin:0}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+header.top{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0 8px}
+.brand{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:var(--muted)}
+.brand b{color:var(--ink);font-size:13px}
+.bar{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .35s}
+.meters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.meter{font-size:11px;color:var(--muted)}
+.meter span{display:flex;justify-content:space-between}
+.meter .bar{height:5px;margin:3px 0 0}
+.meter .bar>i{background:var(--ok)}
+main{padding:18px 0 40px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.tag{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--accent);background:var(--sel);border-radius:99px;padding:3px 10px;margin-bottom:10px}
+.ctx{margin:0 0 12px;color:var(--muted)}
+.ctx strong{color:var(--ink)}
+.prompt{font-weight:650;margin:0 0 14px;font-size:17px}
+.hint{font-size:13px;color:var(--muted);margin:-6px 0 12px}
+.opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;font:inherit;color:inherit;background:var(--surface);
+  border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 10px;cursor:pointer;min-height:48px}
+.opt:hover{border-color:var(--accent)}
+.opt .mark{flex:none;width:20px;height:20px;border:2px solid var(--muted);border-radius:50%;margin-top:2px;position:relative}
+.opt.multi .mark{border-radius:5px}
+.opt[aria-pressed="true"]{background:var(--sel);border-color:var(--accent)}
+.opt[aria-pressed="true"] .mark{border-color:var(--accent);background:var(--accent)}
+.opt[aria-pressed="true"] .mark::after{content:"";position:absolute;inset:3px;background:var(--accent-ink);border-radius:50%}
+.opt.multi[aria-pressed="true"] .mark::after{border-radius:2px;inset:3px}
+.opt.right{border-color:var(--ok);background:var(--ok-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt.missed{border-style:dashed;border-color:var(--ok)}
+.opt .why{display:block;font-size:13px;color:var(--bad);margin-top:4px}
+.opt[disabled]{cursor:default}
+.item{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 10px}
+.item p{margin:0 0 10px}
+.item.right{border-color:var(--ok);background:var(--ok-bg)}
+.item.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:14px;color:inherit;background:transparent;border:1.5px solid var(--line);border-radius:99px;padding:8px 14px;min-height:40px;cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.chip.hintc{border-style:dashed;border-color:var(--ok);color:var(--ok);font-weight:600}
+.chip.on.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+.chip.on.good{background:var(--ok);border-color:var(--ok);color:#fff}
+.fix{font-size:13px;margin:10px 0 0;color:var(--muted)}
+.ord{list-style:none;margin:0;padding:0}
+.ord li{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:8px 8px 8px 12px;margin:0 0 8px}
+.ord li.right{border-color:var(--ok);background:var(--ok-bg)}
+.ord li.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.ord .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--sel);color:var(--accent);font-weight:700;font-size:13px;display:grid;place-items:center}
+.ord .t{flex:1}
+.ord button{flex:none;width:44px;height:44px;font-size:18px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;cursor:pointer}
+.ord button:disabled{opacity:.3;cursor:default}
+.btn{font:inherit;font-weight:650;border:0;border-radius:12px;padding:14px 18px;min-height:48px;cursor:pointer;width:100%}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.primary:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink);margin-top:10px}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.fb{border-radius:14px;padding:14px 16px;margin-top:16px;border:1.5px solid}
+.fb.ok{background:var(--ok-bg);border-color:var(--ok)}
+.fb.part{background:var(--part-bg);border-color:var(--part)}
+.fb.bad{background:var(--bad-bg);border-color:var(--bad)}
+.fb h3{font-size:17px;margin-bottom:6px}
+.fb.ok h3{color:var(--ok)} .fb.part h3{color:var(--part)} .fb.bad h3{color:var(--bad)}
+.fb p{margin:6px 0}
+.fb .cons{font-style:italic}
+.fb .ref{font-size:13px;color:var(--muted)}
+.fb ol{margin:6px 0 6px 20px;padding:0}
+.big{font-size:clamp(26px,7vw,36px);margin-bottom:10px}
+.lead{font-size:17px;margin:0 0 14px}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.facts div{background:var(--sel);border-radius:12px;padding:10px;text-align:center;font-size:12px;color:var(--muted)}
+.facts b{display:block;font-size:20px;color:var(--ink)}
+.score{font-family:Georgia,serif;font-size:64px;line-height:1;color:var(--accent);margin:6px 0}
+.th{margin:12px 0}
+.th div{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.th .bar{margin:4px 0 2px}
+.th.low .bar>i{background:var(--bad)}
+.th.mid .bar>i{background:var(--part)}
+.th.hi .bar>i{background:var(--ok)}
+.th small{color:var(--muted)}
+footer{font-size:12px;color:var(--muted);text-align:center;padding:10px 16px 28px}
+.sr{position:absolute;left:-9999px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+header.top{background:linear-gradient(120deg,#5B3DF5 0%,#C2338F 55%,#F2552C 100%);border-bottom:0;padding:10px 0 10px;color:#fff}
+.brand,.brand b{color:#fff}
+header .bar{background:rgba(255,255,255,.28)}
+header .bar>i{background:#FFD84D}
+.meter{color:rgba(255,255,255,.92)} .meter b{color:#fff}
+.meter .bar>i{background:#fff}
+.meter:nth-child(1) .bar>i{background:#FFD84D}
+.meter:nth-child(2) .bar>i{background:#5CF2C0}
+.meter:nth-child(3) .bar>i{background:#FFA6D5}
+.card{border:0;border-top:6px solid var(--accent2)}
+.tag{background:#FFD84D;color:#3A2300}
+.btn.primary{box-shadow:0 4px 0 rgba(0,0,0,.18)}
+.btn.primary:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.opt,.item,.ord li{border-width:2px}
+.opt[aria-pressed="true"],.chip:hover,.opt:hover{border-color:var(--accent2)}
+.opt[aria-pressed="true"]{background:var(--sel)}
+.opt[aria-pressed="true"] .mark{border-color:var(--accent2);background:var(--accent2)}
+.opt[aria-pressed="true"] .mark::after{background:#fff}
+.chip{border-width:2px;border-color:var(--accent2);color:var(--accent2);font-weight:600}
+.chip.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.chip.on.good{background:var(--ok);border-color:var(--ok);color:#fff}
+.chip.on.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+.ord .n{background:var(--accent2);color:#fff}
+.facts div:nth-child(1){background:#E4DDFF;color:#3B2A9A}.facts div:nth-child(2){background:#FFE0CC;color:#9A2F0A}.facts div:nth-child(3){background:#CFF5E3;color:#0B6A47}
+.facts b{color:inherit}
+.big{color:var(--accent2)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .big{color:#C9BBFF}:root:not([data-theme="light"]) .facts div{background:var(--sel);color:var(--ink)}}
+.opt.right,.opt.right[aria-pressed="true"]{border-color:var(--ok);background:var(--ok-bg)}
+.opt.right[aria-pressed="true"] .mark{border-color:var(--ok);background:var(--ok)}
+.opt.wrong,.opt.wrong[aria-pressed="true"]{border-color:var(--bad);background:var(--bad-bg)}
+.opt.wrong[aria-pressed="true"] .mark{border-color:var(--bad);background:var(--bad)}
+.opt.missed{border-color:var(--ok)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><b style="white-space:nowrap">Management Operațional · Curs 3</b><span id="prog">Studiu de caz</span></div>
+    <div class="bar" aria-hidden="true"><i id="progbar" style="width:0%"></i></div>
+    <div class="meters" id="meters" aria-label="Indicatorii companiei"></div>
+  </div>
+</header>
+<main class="wrap" id="app" aria-live="polite"></main>
+<footer>Gustoria Foods este o companie fictivă, creată în scop didactic. Răspunsurile tale nu sunt trimise nicăieri.<br>Material didactic · Management Operațional · ASE București</footer>
+<noscript><p class="wrap">Pentru a rula studiul de caz este necesar JavaScript.</p></noscript>
+
+<script>
+"use strict";
+/* ============ DATE ============ */
+const THEMES = {
+  concept:{n:"Conceptul și componentele strategiei", r:"cum se leagă strategia operațională de cea de business; misiune, competență distinctivă, obiective, politici"},
+  mediu:{n:"Mediul extern și intern", r:"diferența dintre factorii interni și cei externi; clienți, tehnologie, materii prime, concurență"},
+  model:{n:"Modelul de formulare (circular)", r:"ordinea pașilor de formulare și rolul feedbackului"},
+  prior:{n:"Priorități competitive și tipologii", r:"alegerea unei singure priorități competitive; imitator vs. inovator"},
+  trend:{n:"Aprovizionare, reziliență și tendințe", r:"dependența de furnizori; AI, sustenabilitate, nearshoring, digital twin"}
+};
+const METERS = {coerenta:"Coerență", adaptare:"Adaptare", competitiv:"Competitivitate"};
+
+const Q = [
+/* ---- Scena 1 ---- */
+{ when:"Ziua 1 · Mandatul", th:"concept", m:"coerenta", type:"single",
+  ctx:"Ai fost numit director de operațiuni la <strong>Gustoria Foods</strong>, producător de biscuiți și batoane de cereale din Buzău (450 de angajați, 55% din vânzări la export). Profitul scade, termenele de livrare se prelungesc, iar concurența se intensifică. CEO-ul îți spune: <em>„Strategia noastră de business: să devenim furnizor de referință de biscuiți și batoane de cereale accesibile pentru familii tinere din Europa Centrală. Partea operațională îți revine ție.”</em>",
+  prompt:"Cum se raportează strategia operațională pe care o vei construi la strategia generală a firmei?",
+  options:[
+   {t:"Este continuarea ei: arată cum producem pentru a ajunge unde vrea strategia de business să ajungă", ok:1},
+   {t:"O înlocuiește, pentru că producția știe cel mai bine ce se poate fabrica", w:"Strategia operațională nu înlocuiește strategia generală, ci o continuă."},
+   {t:"Se construiește independent, iar departamentul comercial se adaptează apoi la ea", w:"Ordinea e inversă: strategia de business stabilește direcția, cea operațională o urmează."},
+   {t:"Se limitează la planul de investiții în utilaje", w:"Include misiune, competență distinctivă, obiective și politici, nu doar investiții."}],
+  expl:"Strategia de business răspunde la întrebarea „unde vrem să ajungem și pe ce piață?”. Producția nu are un scop în sine: rolul ei este să facă posibilă îndeplinirea promisiunii făcute pieței. De aceea strategia operațională derivă din cea generală, și nu invers: dacă firma promite produse accesibile, fabrica trebuie organizată pentru costuri mici, nu pentru exclusivitate.",
+   hi:"CEO-ul apreciază abordarea: de acum, fiecare decizie de producție poate fi corelată cu strategia de business.", lo:"În lipsa acestei legături, planul ar putea fi impecabil din punct de vedere tehnic, dar nu ar conduce firma în direcția dorită de CEO."},
+
+{ when:"Ziua 1 · Mandatul", th:"concept", m:"coerenta", type:"assign",
+  ctx:"Pentru ședința de mâine, echipa ți-a transmis un set de enunțuri neordonate. Sarcina ta este să le încadrezi corect.",
+  prompt:"Încadrează fiecare enunț în componenta potrivită a strategiei operaționale.",
+  buckets:["Misiune","Competență distinctivă","Obiectiv","Politică"],
+  items:[
+   {t:"Producția susține oferta accesibilă a firmei prin costuri controlate și livrări punctuale", b:0, w:"descrie rolul producției în strategia globală"},
+   {t:"Să livrăm biscuiți proaspeți, cu gust constant, la cel mai bun preț din segmentul nostru", b:0, w:"răspunde la „ce vrem să fim operațional?”"},
+   {t:"Excelăm în fabricarea de serii mari, standardizate, cu pierderi minime", b:1, w:"este un domeniu în care firma excelează"},
+   {t:"Know-how intern în proiectarea rețetelor și ambalajelor pentru producție rapidă și risipă redusă", b:1, w:"este o capabilitate distinctivă, susținută de sistemele interne"},
+   {t:"Reducerea costului unitar cu 12% în 18 luni", b:2, w:"este o țintă măsurabilă"},
+   {t:"Scăderea rebuturilor sub 2% până la finalul anului", b:2, w:"este o țintă măsurabilă"},
+   {t:"Trecerea la ambalaje standardizate, comune pentru toate gamele", b:3, w:"este o decizie concretă prin care se implementează obiectivele"},
+   {t:"Aprovizionare just-in-time de la trei furnizori calificați", b:3, w:"este o regulă/decizie concretă de lucru"}],
+  expl:"Cele patru componente sunt niveluri diferite de concretețe. <b>Misiunea</b> spune ce rol are producția; <b>competența distinctivă</b> indică domeniul în care firma excelează; <b>obiectivul</b> traduce asta într-un număr și un termen; <b>politica</b> este decizia sau regula prin care se atinge ținta. Un criteriu util: dacă enunțul poate fi evaluat prin „atins / neatins”, este obiectiv; dacă descrie o alegere de lucru (ce tehnologie, ce stoc, ce standard), este politică.",
+   hi:"Ședința decurge clar: fiecare propunere a echipei își găsește locul în succesiunea misiune → competență → obiective → politici.", lo:"Țintele se confundă cu deciziile; în timp, devine neclar ce se măsoară și ce se hotărăște."},
+
+/* ---- Scena 2 ---- */
+{ when:"Săptămâna 2 · Diagnoza", th:"mediu", m:"adaptare", type:"assign",
+  ctx:"Înainte de orice plan, realizezi diagnosticul situației. Strategia se formulează analizând <strong>mediul extern</strong> (piață, concurență, tehnologie, context) și <strong>mediul intern</strong> (resurse, cultură, capabilități).",
+  prompt:"Pentru fiecare observație, indică dacă se referă la mediul intern sau la care dintre factorii externi.",
+  buckets:["Intern","Clienți","Tehnologie","Materii prime","Concurență"],
+  items:[
+   {t:"Clienții din Germania cer tot mai des produse fără zahăr adăugat și ambalaje reciclabile", b:1, w:"nevoile consumatorilor"},
+   {t:"Apar sisteme de inspecție cu viziune artificială, care detectează automat produsele defecte", b:2, w:"noile tehnologii"},
+   {t:"Făina și uleiul s-au scumpit cu 30%, iar un furnizor de ambalaje din Asia întârzie livrările", b:3, w:"disponibilitatea și prețul materiilor prime"},
+   {t:"Un lanț de retail lansează o marcă proprie de biscuiți cu 25% mai ieftină", b:4, w:"competiția"},
+   {t:"Liniile de coacere au în medie 15 ani vechime", b:0, w:"resurse proprii"},
+   {t:"Personalul are competențe multiple și fluctuație redusă", b:0, w:"capabilități interne"},
+   {t:"Deciziile de producție se iau doar de sus în jos", b:0, w:"cultură organizațională"},
+   {t:"Firma dispune de capital propriu pentru investiții", b:0, w:"resurse proprii"}],
+  expl:"Criteriul de departajare este <b>gradul de control</b>. Factorii care provin din piață (clienți, tehnologii, prețul materiilor prime, acțiunile concurenților) nu pot fi modificați de firmă, ci doar anticipați; elementele legate de resurse, oameni și mod de decizie pot fi influențate direct. Strategia are nevoie de ambele: mediul extern arată ce cere piața, cel intern arată ce poate firma să ofere în mod realist. Un plan construit doar pe unul dintre ele este fie irealizabil, fie inutil.",
+   hi:"Diagnosticul este clar: distingi ce poți controla de ceea ce trebuie doar monitorizat.", lo:"Diagnosticul rămâne imprecis: problemele provenite din piață sunt tratate drept deficiențe interne, sau invers."},
+
+{ when:"Săptămâna 2 · Diagnoza", th:"mediu", m:"adaptare", type:"single",
+  ctx:"Directorul tehnic propune ca tot bugetul anului să meargă în repararea liniilor vechi și rescrierea procedurilor interne: <em>„Piața ne va aștepta; suntem buni în ceea ce facem.”</em> Observi că ultimele trei contracte cu rețele de retail au fost câștigate de concurenți cu linii digitalizate.",
+  prompt:"Ce îi răspunzi?",
+  options:[
+   {t:"Concentrarea doar pe interior e riscul clasic: strategia trebuie să pornească și din mediul extern (clienți, tehnologie, concurență), altfel producția devine necompetitivă", ok:1},
+   {t:"De acord: ordinea internă este prioritară, iar mediul extern este responsabilitatea departamentului comercial", w:"Mediul extern nu este doar responsabilitatea departamentului comercial: producția trebuie să corespundă nevoilor clienților și evoluției tehnologice."},
+   {t:"Imităm ce fac concurenții, fără a analiza resursele noastre", w:"Strategia are nevoie de ambele analize; imitația oarbă ignoră resursele și cultura proprie."},
+   {t:"Așteptăm să vedem dacă tendința digitală se confirmă, ca să nu riscăm investiția", w:"Aceasta a fost abordarea Kodak: a amânat schimbarea de teama de a-și afecta activitatea principală."}],
+  expl:"Costul amânării nu apare în fabrică, ci în contractele pierdute. Reparațiile și procedurile îmbunătățesc doar ce faci deja, în timp ce clienții și concurenții decid ce contează. <b>Kodak</b> a dezvoltat primul tehnologia digitală, dar a protejat activitatea existentă și și-a pierdut poziția pe piață. Principiu de lucru: o parte din buget susține prezentul, iar o parte pregătește răspunsul la schimbările din exterior.",
+   hi:"Bugetul este repartizat echilibrat: remedieri urgente și digitalizarea liniilor relevante pentru contractele de retail.", lo:"Investești în linii vechi în timp ce piața se orientează în altă direcție, situație similară cazului Kodak."},
+
+/* ---- Scena 3 ---- */
+{ when:"Luna 1 · Metoda", th:"model", m:"coerenta", type:"order",
+  ctx:"Pregătești pentru conducere metoda de lucru. Pentru ca strategia să fie solidă, fiecare etapă trebuie să decurgă logic din cea anterioară.",
+  prompt:"Ordonează etapele corect, de sus în jos, folosind săgețile.",
+  items:[
+   "Analiza mediului extern și intern",
+   "Definirea misiunii funcției de producție",
+   "Identificarea competenței distinctive",
+   "Stabilirea obiectivelor operaționale măsurabile",
+   "Alegerea politicilor operaționale și a deciziilor tehnice (tehnologii, stocuri, automatizări)",
+   "Măsurarea rezultatelor și feedback către etapele anterioare"],
+  expl:"Ordinea nu este arbitrară: fiecare pas se sprijină pe cel precedent. Misiunea nu poate fi definită fără a ști ce solicită piața și ce poate oferi firma; competența distinctivă se alege în funcție de misiune; țintele se fixează după ce este clar în ce domeniu se dorește excelența; iar politicile sunt mijloacele prin care se ating țintele. Ultimul pas închide cercul: dacă rezultatele întârzie, se identifică nivelul la care a apărut eroarea și se revine la el.",
+   hi:"Conducerea primește o metodă clară și o regulă simplă: rezultatele se întorc în analiză.", lo:"Prezentarea omite etape, iar conducerea întreabă: „pe ce criterii au fost alese aceste ținte?”."},
+
+{ when:"Luna 1 · Metoda", th:"prior", m:"competitiv", type:"assign",
+  ctx:"Pentru a decide ce fel de avantaj competitiv urmărește Gustoria, studiezi cinci companii-model. Fiecare și-a construit sistemele operaționale în jurul unei priorități dominante.",
+  prompt:"Asociază fiecare companie cu prioritatea competitivă pe care a ales-o.",
+  buckets:["Cost","Calitate","Livrare","Flexibilitate","Inovație"],
+  items:[
+   {t:"Ryanair: un singur tip de avion, fără servicii extra, rotație rapidă a curselor", b:0, w:"costurile reduse permit prețuri mici și o piață mai largă"},
+   {t:"Toyota: „zero defecte” și Kaizen, îmbunătățire continuă", b:1, w:"fiabilitate și calitate constantă"},
+   {t:"Amazon: centre de fulfilment automatizate, livrare în 24 de ore", b:2, w:"viteză și predictibilitate"},
+   {t:"Zara: producție aproape de piață, colecție nouă la ~3 săptămâni, producție triplată în câteva zile", b:3, w:"adaptare rapidă la cerere"},
+   {t:"Apple: design, integrare hardware-software, categorii noi de produs", b:4, w:"noutate și diferențiere"}],
+  expl:"Fiecare companie a ales o singură prioritate dominantă și și-a organizat activitatea în jurul ei: Ryanair reduce orice cheltuială nenecesară (un singur tip de avion, rotații rapide), Toyota urmărește eliminarea defectelor prin îmbunătățire continuă, Amazon investește în logistică pentru viteză, Zara scurtează distanța dintre cerere și producție ca să se reorienteze rapid, Apple controlează designul și integrarea pentru a crea produse noi. Se observă că alegerea determină sistemele: viteza Amazon nu se obține cu o logistică construită pentru costuri minime.",
+   hi:"Dispui acum de un limbaj comun pentru decizia următoare: fiecare model a ales o prioritate dominantă.", lo:"Neclaritatea dintre priorități te-ar putea orienta spre un model nepotrivit pentru firmă."},
+
+/* ---- Scena 4 ---- */
+{ when:"Luna 2 · Alegerea", th:"prior", m:"competitiv", type:"single",
+  ctx:"Directorul comercial intră în ședință entuziasmat: <em>„Vrem să fim și cei mai ieftini, și premium ca patiseria fină, și să livrăm în 48 de ore, și să realizăm orice rețetă la cerere!”</em>",
+  prompt:"Ce îi recomanzi CEO-ului?",
+  options:[
+   {t:"Alegem o competență principală clară și construim sistemele operaționale în jurul ei", ok:1},
+   {t:"Se poate, dacă investim suficient în toate patru simultan", w:"Nu poți fi simultan cel mai ieftin, cel mai rapid și cel mai flexibil."},
+   {t:"Ne poziționăm diferit pe fiecare produs, fără o direcție comună, ca să acoperim toate segmentele", w:"Fără o direcție comună, sistemele operaționale nu pot fi coerente."},
+   {t:"Preluăm identic competența celui mai mare concurent", w:"Imitarea fără o alegere proprie nu construiește o competență distinctivă."}],
+  expl:"Prioritățile competitive se condiționează reciproc: ieftin cere serii lungi și standardizare, rapid cere capacitate în rezervă, personalizat cere flexibilitate, premium cere control atent al calității. Aceste sisteme se contrazic, deci nu pot fi maximizate simultan. <b>McDonald’s</b> a încercat în 2013–2015 să fie ieftin, sănătos și premium deodată: meniul a devenit foarte extins, servirea s-a încetinit, brandul s-a diluat, iar profitul a scăzut. O firmă alege prioritatea pe care piața o plătește și pe care o poate susține operațional, iar celelalte sunt menținute la un nivel acceptabil.",
+   hi:"CEO-ul este mulțumit: Gustoria va avea o singură competență principală, în jurul căreia se va organiza întregul sistem.", lo:"Promisiunile contradictorii ar duce la un portofoliu prea extins, termene mai lungi și un brand neclar, ca în cazul McDonald’s în 2013–2015."},
+
+{ when:"Luna 2 · Alegerea", th:"prior", m:"competitiv", type:"single",
+  ctx:"Analiza de piață arată clar: piața biscuiților de larg consum pentru familii tinere este <strong>matură, sensibilă la preț, cu produse standardizate</strong>.",
+  prompt:"Ce tip de strategie și ce misiune de producție se potrivesc?",
+  options:[
+   {t:"Strategia imitatorului: misiune centrată pe costuri, procese simplificate, standardizate și integrate vertical, cu obiectivul reducerii costului unitar (modelul IKEA)", ok:1},
+   {t:"Strategia inovatorului: flexibilitate, creativitate și lansări rapide, cu costul ca prioritate secundară (modelul Tesla)", w:"Inovatorul se potrivește piețelor în dezvoltare, unde adaptabilitatea contează mai mult decât costul."},
+   {t:"Strategia inovatorului, pentru că orice firmă trebuie să lanseze produse noi în fiecare trimestru", w:"Alegerea depinde de poziționare și de tipul pieței, nu de un calendar de lansări."},
+   {t:"Oricare dintre ele, fiindcă tipul de piață nu influențează strategia operațională", w:"Tipul de piață este tocmai criteriul de alegere."}],
+  expl:"Alegerea pornește de la ce decide cumpărătorul. Pe o piață matură, cu produse similare, clientul compară prețurile, deci câștigă cine produce mai ieftin: standardizare, procese simple, volum mare (<b>imitator</b>). Pe o piață aflată în formare, preferințele clienților nu sunt încă stabilite, deci contează cine experimentează și lansează rapid, chiar la costuri mai mari (<b>inovator</b>). Cele două logici se pot combina în doze diferite, dar o firmă care nu face o alegere suportă costurile ambelor.",
+   hi:"Direcția este stabilită: cost unitar mic prin standardizare și simplificare.", lo:"O poziționare nepotrivită pieței ar crește costurile fără a aduce un avantaj real."},
+
+/* ---- Scena 5 ---- */
+{ when:"Luna 3 · Politici", th:"prior", m:"coerenta", type:"multi",
+  ctx:"Gustoria a ales <strong>costul</strong> ca prioritate competitivă. Acum trebuie să traduci alegerea în politici operaționale concrete.",
+  prompt:"Bifează politicile COERENTE cu strategia de cost.",
+  hintTxt:"Sunt 3 răspunsuri corecte.",
+  options:[
+   {t:"Ambalaje standardizate, comune pentru toate gamele", ok:1},
+   {t:"Standardizarea rețetelor și reducerea numărului de sortimente", ok:1},
+   {t:"Simplificarea fluxurilor și integrarea verticală a etapelor-cheie (ex.: producție proprie de creme și glazuri)", ok:1},
+   {t:"O linie dedicată rețetelor la cerere, cu schimbări frecvente de serie", w:"Susține flexibilitatea, nu costul."},
+   {t:"Producție artizanală, decorată manual, pentru gama premium", w:"Susține calitatea premium, nu costul."},
+   {t:"Un laborator de cercetare pentru o categorie complet nouă de produse", w:"Susține inovația, nu costul."}],
+  expl:"O politică este coerentă atunci când reduce costul unitar fără a adăuga o altă promisiune. Ambalajele comune, mai puține sortimente și rețetele standardizate permit serii lungi, mai puține schimbări de linie și achiziții în volume mari. Integrarea verticală reduce marjele plătite intermediarilor. Celelalte trei politici sunt potrivite altor strategii, dar aici ar majora costul: schimbări frecvente de serie, muncă manuală, cercetare fără randament garantat.",
+   hi:"Politicile se completează reciproc: fiecare susține obiectivul de cost.", lo:"Unele politici sunt orientate spre alte priorități: costul crește, iar avantajul se diluează."},
+
+{ when:"Luna 4 · Primul șoc", th:"trend", m:"adaptare", type:"single",
+  ctx:"Un blocaj maritim întârzie cu șase săptămâni filmul de ambalare și un ingredient-cheie din Asia, de la un furnizor unic. Producția s-a oprit nouă zile și două comenzi mari sunt în pericol.",
+  prompt:"Care este cea mai coerentă măsură strategică?",
+  options:[
+   {t:"Analizăm dependențele externe și diversificăm sursele: furnizori calificați din Europa de Est/Turcia și parteneriate regionale (nearshoring), păstrând obiectivul de cost", ok:1},
+   {t:"Constituim un stoc de siguranță de 12 luni la toate materiile prime și ambalajele", w:"Un stoc foarte mare implică costuri ridicate, contrar strategiei de cost."},
+   {t:"Rămânem la același furnizor și cerem un discount pentru întârziere", w:"Nu elimină dependența de un singur furnizor și de un singur coridor logistic."},
+   {t:"Tratăm blocajul ca pe un caz izolat, fără modificări de strategie", w:"Criza semiconductorilor a arătat că riscurile din lanțul de aprovizionare sunt structurale."}],
+  expl:"Problema nu este blocajul în sine, ci faptul că dependența de un singur furnizor și de un singur traseu transformă orice incident în oprire de producție. Răspunsul strategic reduce această dependență: mai mulți furnizori calificați, de preferință mai aproape de piață, ceea ce scurtează timpii și scade expunerea. Un stoc foarte mare tratează doar efectul, imobilizează capital și contrazice obiectivul de cost; iar un discount nu protejează firma la o următoare întârziere.",
+   hi:"Impactul este absorbit: în două luni dispui de doi furnizori noi și de un risc semnificativ mai redus.", lo:"Firma rămâne expusă: un nou blocaj ar opri din nou producția."},
+
+/* ---- Scena 6 ---- */
+{ when:"Anul 1 · Viitorul", th:"trend", m:"adaptare", type:"assign",
+  ctx:"Consiliul de administrație solicită un plan de modernizare pe trei ani. Producția modernă se sprijină pe cinci piloni: digitalizare, automatizare, sustenabilitate, reziliență și proximitate.",
+  prompt:"Potrivește fiecare inițiativă cu tendința din producția modernă.",
+  buckets:["Automatizare & AI","Sustenabilitate","Nearshoring","Digital twin"],
+  items:[
+   {t:"Roboți care mută paleții în depozit și un sistem care prognozează cererea pe regiuni", b:0, w:"automatizare și prognoză bazată pe date"},
+   {t:"Linie cu consum redus de energie și reciclare integrală a apei", b:1, w:"consum redus de resurse"},
+   {t:"Mutarea unei părți din aprovizionare și producție din Asia în Europa de Est", b:2, w:"aprovizionare mai aproape de piață"},
+   {t:"Replică virtuală a fabricii, pentru a testa scenarii înainte de investiție", b:3, w:"simulare înainte de investiție"}],
+  expl:"Fiecare inițiativă rezolvă o problemă diferită. <b>Automatizarea și AI</b> accelerează și precizează operațiunile curente. <b>Sustenabilitatea</b> reduce consumul de energie și apă, deci și costurile, și răspunde cerințelor clienților. <b>Nearshoring-ul</b> scurtează lanțul de aprovizionare și îl face mai rezistent la șocuri. <b>Digital twin</b> permite testarea unei schimbări în mediul virtual înainte de a suporta costul ei în realitate, adică anticipezi în loc să reacționezi.",
+   hi:"Planul pe trei ani acoperă digitalizarea, sustenabilitatea și proximitatea.", lo:"Inițiativele se suprapun, iar bugetul este repartizat fără un criteriu clar."},
+
+{ when:"Anul 1 · Viitorul", th:"model", m:"adaptare", type:"single",
+  ctx:"La șase luni după implementare: costul unitar a scăzut cu 9%, <em>dar</em> comenzile din Germania au scăzut cu 8%. Clienții cer tot mai mult ambalaje reciclabile și mai puțin zahăr.",
+  prompt:"Ce faci, conform logicii circulare a modelului?",
+  options:[
+   {t:"Folosim rezultatele ca feedback: reluăm analiza mediului extern și intern și ajustăm, dacă e nevoie, obiectivele, competența și politicile", ok:1},
+   {t:"Păstrăm strategia neschimbată: obiectivul de cost a fost atins, deci strategia a reușit", w:"Atingerea unei ținte nu garantează că ținta mai e cea potrivită, iar piața s-a modificat."},
+   {t:"Renunțăm la întreaga strategie și o reconstruim de la zero, cu alt tip de strategie", w:"Feedbackul cere ajustare, nu abandon: schimbi ce nu mai funcționează."},
+   {t:"Așteptăm încă doi ani, pentru că strategiile operaționale nu se modifică", w:"Strategia operațională nu e statică, ci o construcție vie."}],
+  expl:"O țintă atinsă nu garantează o strategie corectă: costul a scăzut, dar vânzările pe piața principală au scăzut, ceea ce indică o schimbare în mediul extern. Pașii logici: verifici ce s-a modificat în mediu (cererea de ambalaje reciclabile), compari cu ce poți realiza intern și ajustezi nivelul potrivit, de obicei politicile (ambalaje, rețete), uneori obiectivele, rar misiunea. Abandonarea totală ar anula avantajul de cost deja obținut, iar inacțiunea ar permite agravarea problemei.",
+   hi:"Reajustezi la timp: analiza evidențiază noua cerere, iar politicile se adaptează.", lo:"Strategia rămâne neschimbată: cu cât ajustarea întârzie, cu atât recuperarea este mai dificilă."}
+];
+
+const TIERS = [
+ {min:85, name:"Strateg operațional", end:"La 12 luni, Gustoria are o direcție clară: costul unitar a scăzut, furnizorii sunt diversificați, iar echipa știe ce măsoară și de ce. Consiliul îți prelungește mandatul."},
+ {min:70, name:"Director de operațiuni solid", end:"Gustoria merge în direcția bună, dar unele decizii au rămas incomplete. Cu ajustări punctuale (vezi mai jos) strategia ta ar deveni foarte solidă."},
+ {min:50, name:"În direcția corectă, cu unele lacune", end:"Rezultate mixte: unele decizii au fost coerente, altele au consumat resurse inutil. O recapitulare punctuală a cursului te va ajuta să consolidezi cunoștințele."},
+ {min:0,  name:"Merită o recapitulare", end:"Planul ar fi întâmpinat dificultăți în implementare. Rezultatul este util: arată exact unde merită să revii. Recapitulează temele de mai jos și reia studiul de caz."}
+];
+
+/* ============ UTIL ============ */
+const KEY = "mo-curs3-gustoria-v1";
+const $ = (s,r=document)=>r.querySelector(s);
+const app = $("#app");
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s==="object"&&s.res)return s}catch(e){}return null}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function clear(){try{localStorage.removeItem(KEY)}catch(e){}}
+let state = {step:"intro", i:0, res:{}};
+
+/* ============ INDICATORI ============ */
+function meterVals(){
+  const tot={},sum={};
+  Q.forEach((q,i)=>{tot[q.m]=(tot[q.m]||0)+1; if(state.res[i]) sum[q.m]=(sum[q.m]||0)+state.res[i].score;});
+  return Object.keys(METERS).map(k=>({k,n:METERS[k],v:Math.round(20+80*(sum[k]||0)/tot[k])}));
+}
+function paintHeader(){
+  const answered = Object.keys(state.res).length;
+  $("#progbar").style.width = (state.step==="end"?100:answered/Q.length*100)+"%";
+  $("#prog").textContent = state.step==="intro" ? "~20 min" : state.step==="end" ? "Rezultat" : `Decizia ${state.i+1} din ${Q.length}`;
+  $("#meters").innerHTML = meterVals().map(m=>`<div class="meter"><span><span>${m.n}</span><b>${m.v}</b></span><div class="bar" role="meter" aria-label="${m.n}" aria-valuenow="${m.v}" aria-valuemin="0" aria-valuemax="100"><i style="width:${m.v}%"></i></div></div>`).join("");
+}
+
+/* ============ INTERACȚIUNI ============ */
+function mountSingle(q, box, multi){
+  const opts = shuffle(q.options);
+  const sel = new Set(); let done=false; const ui={};
+  box.innerHTML = opts.map((o,k)=>`<button type="button" class="opt ${multi?"multi":""}" data-k="${k}" aria-pressed="false"><span class="mark"></span><span class="tx">${o.t}</span></button>`).join("");
+  const btns=[...box.querySelectorAll(".opt")];
+  btns.forEach((b,k)=>b.onclick=()=>{
+    if(done)return;
+    if(multi){sel.has(k)?sel.delete(k):sel.add(k)} else {sel.clear();sel.add(k)}
+    btns.forEach((x,j)=>x.setAttribute("aria-pressed",sel.has(j)));
+    ui.onChange&&ui.onChange();
+  });
+  ui.ready=()=>sel.size>0;
+  ui.check=()=>{
+    done=true; btns.forEach(b=>b.disabled=true);
+    let right=0,wrong=0; const total=opts.filter(o=>o.ok).length;
+    opts.forEach((o,k)=>{
+      const b=btns[k], chosen=sel.has(k);
+      if(chosen&&o.ok){b.classList.add("right");right++}
+      else if(chosen&&!o.ok){b.classList.add("wrong");wrong++;if(o.w)b.querySelector(".tx").insertAdjacentHTML("beforeend",`<span class="why">${o.w}</span>`)}
+      else if(!chosen&&o.ok){b.classList.add("missed")}
+    });
+    const score = multi ? Math.max(0,(right-wrong)/total) : (right===1?1:0);
+    return {score, detail: multi?`<p>Ai bifat corect ${right} din ${total}${wrong?`, plus ${wrong} greșit${wrong>1?"e":""}`:""}. Opțiunile cu margine întreruptă erau corecte, dar nebifate.</p>`:""};
+  };
+  return ui;
+}
+
+function mountAssign(q, box){
+  const order = shuffle(q.items.map((it,idx)=>({...it,idx})));
+  const ans={}; let done=false; const ui={};
+  box.innerHTML = order.map(it=>`<div class="item" data-i="${it.idx}"><p>${it.t}</p><div class="chips" role="radiogroup" aria-label="Alege categoria">${q.buckets.map((b,bi)=>`<button type="button" class="chip" role="radio" aria-checked="false" data-b="${bi}">${b}</button>`).join("")}</div><p class="fix" hidden></p></div>`).join("");
+  box.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{
+    if(done)return;
+    const i=+c.closest(".item").dataset.i; ans[i]=+c.dataset.b;
+    c.closest(".item").querySelectorAll(".chip").forEach(x=>{const on=+x.dataset.b===ans[i];x.classList.toggle("on",on);x.setAttribute("aria-checked",on)});
+    ui.onChange&&ui.onChange();
+  });
+  ui.ready=()=>Object.keys(ans).length===q.items.length;
+  ui.check=()=>{
+    done=true; let c=0;
+    box.querySelectorAll(".item").forEach(el=>{
+      const i=+el.dataset.i, it=q.items[i], ok=ans[i]===it.b; if(ok)c++;
+      el.classList.add(ok?"right":"wrong");
+      el.querySelectorAll(".chip").forEach(x=>{
+        x.disabled=true; const bi=+x.dataset.b;
+        if(bi===ans[i]) x.classList.add(ok?"good":"bad");
+        else if(!ok&&bi===it.b) x.classList.add("hintc");
+      });
+      if(!ok){const f=el.querySelector(".fix");f.hidden=false;f.innerHTML=`Corect: <b>${q.buckets[it.b]}</b>${it.w?` · ${it.w}`:""}`}
+    });
+    return {score:c/q.items.length, detail:`<p>${c} din ${q.items.length} asocieri corecte.</p>`};
+  };
+  return ui;
+}
+
+function mountOrder(q, box){
+  const n=q.items.length; let cur; const ui={}; let done=false;
+  do{cur=shuffle([...Array(n).keys()])}while(cur.every((v,i)=>v===i));
+  box.innerHTML=`<ol class="ord"></ol>`; const ol=box.firstChild;
+  function paint(focus){
+    ol.innerHTML=cur.map((idx,pos)=>`<li data-pos="${pos}"><span class="n">${pos+1}</span><span class="t">${q.items[idx]}</span><button type="button" data-d="-1" aria-label="Mută în sus" ${pos===0||done?"disabled":""}>↑</button><button type="button" data-d="1" aria-label="Mută în jos" ${pos===n-1||done?"disabled":""}>↓</button></li>`).join("");
+    ol.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      const pos=+b.closest("li").dataset.pos, d=+b.dataset.d;
+      [cur[pos],cur[pos+d]]=[cur[pos+d],cur[pos]]; paint({pos:pos+d,d:b.dataset.d}); ui.onChange&&ui.onChange();
+    });
+    if(focus){const t=ol.querySelector(`li[data-pos="${focus.pos}"] button[data-d="${focus.d}"]`);if(t&&!t.disabled)t.focus();else{const o=ol.querySelector(`li[data-pos="${focus.pos}"] button:not(:disabled)`);o&&o.focus()}}
+  }
+  paint();
+  ui.ready=()=>true;
+  ui.check=()=>{
+    done=true; paint(); let c=0;
+    ol.querySelectorAll("li").forEach((li,pos)=>{const ok=cur[pos]===pos;if(ok)c++;li.classList.add(ok?"right":"wrong")});
+    return {score:c/n, detail:`<p>${c} din ${n} etape sunt pe poziția corectă. Ordinea corectă:</p><ol>${q.items.map(t=>`<li>${t}</li>`).join("")}</ol>`};
+  };
+  return ui;
+}
+
+/* ============ ECRANE ============ */
+function intro(){
+  const saved = Object.keys(state.res).length;
+  app.innerHTML=`
+  <section class="card">
+    <span class="tag">Studiu de caz · Curs 3</span>
+    <h1 class="big">Gustoria Foods are nevoie de o strategie operațională</h1>
+    <p class="lead">Ai fost numit recent director de operațiuni al unui producător de biscuiți și batoane de cereale din Buzău. Ai la dispoziție un an pentru a stabili direcția firmei. Fiecare decizie influențează indicatorii din partea de sus.</p>
+    <div class="facts"><div><b>12</b>decizii</div><div><b>15–20</b>minute</div><div><b>0</b>date trimise</div></div>
+    <p class="ctx">Ce vei verifica: strategia operațională de producție, modelul de formulare, tipologiile, factorii externi și tendințele actuale. După fiecare decizie primești explicația logică a răspunsului corect și consecința pentru firmă.</p>
+    ${saved?`<button class="btn primary" id="go">Continuă (ai răspuns la ${saved} din ${Q.length})</button><button class="btn ghost" id="reset">Începe de la zero</button>`:`<button class="btn primary" id="go">Începem</button>`}
+  </section>`;
+  $("#go").onclick=()=>{ if(saved){const next=Q.findIndex((_,i)=>!state.res[i]); if(next<0){state.step="end"}else{state.step="q";state.i=next}} else {state.step="q";state.i=0} save(); render(); };
+  const r=$("#reset"); if(r) r.onclick=()=>{state={step:"q",i:0,res:{}};save();render()};
+}
+
+function question(){
+  const q=Q[state.i], last=state.i===Q.length-1;
+  const prevWhen = state.i>0?Q[state.i-1].when:null;
+  app.innerHTML=`
+  <section class="card">
+    <span class="tag">${q.when}</span>
+    <p class="ctx">${q.ctx}</p>
+    <p class="prompt">${q.prompt}</p>
+    ${q.hintTxt?`<p class="hint">${q.hintTxt}</p>`:""}
+    <div id="inter"></div>
+    <button class="btn primary" id="check" type="button" disabled>Verifică răspunsul</button>
+    <div id="fb" role="status"></div>
+  </section>`;
+  const box=$("#inter");
+  const ui = q.type==="single"?mountSingle(q,box,false) : q.type==="multi"?mountSingle(q,box,true) : q.type==="assign"?mountAssign(q,box) : mountOrder(q,box);
+  const btn=$("#check");
+  ui.onChange=()=>{btn.disabled=!ui.ready()};
+  ui.onChange();
+  btn.onclick=()=>{
+    const r=ui.check(); state.res[state.i]={score:r.score}; save(); paintHeader();
+    const cls = r.score>=0.99?"ok":r.score>=0.5?"part":"bad";
+    const title = cls==="ok"?"Corect":cls==="part"?"Parțial corect":"Răspuns incorect";
+    $("#fb").innerHTML=`<div class="fb ${cls}"><h3>${title}</h3>${r.detail}<p>${q.expl}</p><p class="cons">${r.score>=0.75?q.hi:q.lo}</p></div><button class="btn primary" id="next" type="button" style="margin-top:14px">${last?"Vezi rezultatul":"Mai departe"}</button>`;
+    btn.hidden=true;
+    $("#next").onclick=()=>{ if(last){state.step="end"}else{state.i++} save(); render(); };
+    $("#fb").scrollIntoView({behavior:"smooth",block:"nearest"});
+    $("#next").focus({preventScroll:true});
+  };
+}
+
+function end(){
+  const total=Q.reduce((s,_,i)=>s+(state.res[i]?state.res[i].score:0),0);
+  const pct=Math.round(total/Q.length*100);
+  const tier=TIERS.find(t=>pct>=t.min);
+  const th={}; Q.forEach((q,i)=>{const t=th[q.th]||(th[q.th]={s:0,n:0});t.n++;t.s+=state.res[i]?state.res[i].score:0});
+  const rows=Object.keys(THEMES).map(k=>({k,p:Math.round(th[k].s/th[k].n*100)}));
+  const weak=rows.filter(r=>r.p<70);
+  app.innerHTML=`
+  <section class="card">
+    <span class="tag">Rezultat final</span>
+    <div class="score">${pct}%</div>
+    <h1 class="big" style="margin-bottom:8px">${tier.name}</h1>
+    <p class="lead">${tier.end}</p>
+    <h3 style="margin:18px 0 6px">Pe teme</h3>
+    ${rows.map(r=>`<div class="th ${r.p>=70?"hi":r.p>=50?"mid":"low"}"><div><span>${THEMES[r.k].n}</span><b>${r.p}%</b></div><div class="bar"><i style="width:${r.p}%"></i></div></div>`).join("")}
+    ${weak.length?`<h3 style="margin:18px 0 6px">Ce merită recapitulat</h3><ul>${weak.map(r=>`<li><b>${THEMES[r.k].n}</b><br><small>${THEMES[r.k].r}</small></li>`).join("")}</ul>`:`<p>Nicio temă sub 70%. Poți trece mai departe cu încredere.</p>`}
+    <button class="btn primary" id="again" style="margin-top:16px">Reia studiul de caz</button>
+    <button class="btn ghost" id="copy">Copiază rezultatul</button>
+    <p class="hint" id="copied" hidden>Copiat.</p>
+  </section>`;
+  $("#again").onclick=()=>{state={step:"q",i:0,res:{}};save();render();window.scrollTo(0,0)};
+  $("#copy").onclick=()=>{
+    const txt=`Studiu de caz MO, Curs 3 (Gustoria Foods): ${pct}% · ${tier.name}\n`+rows.map(r=>`- ${THEMES[r.k].n}: ${r.p}%`).join("\n");
+    const ok=()=>{$("#copied").hidden=false};
+    try{navigator.clipboard.writeText(txt).then(ok,()=>{})}catch(e){}
+  };
+}
+
+function render(){
+  paintHeader();
+  if(state.step==="intro") intro(); else if(state.step==="end") end(); else question();
+  window.scrollTo({top:0});
+}
+
+/* ============ START ============ */
+(function(){
+  const s=load();
+  if(s){ state=s; if(state.step==="q"&&state.res[state.i]) {state.i++; if(state.i>=Q.length) state.step="end";} if(state.step==="q") state.step="intro"; }
+  render();
+})();
+</script>
+</body>
+</html>
